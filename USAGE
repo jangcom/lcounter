@@ -1,0 +1,58 @@
+NAME
+    lcounter - Count the numbers of lines of text files
+
+SYNOPSIS
+        perl lcounter.pl [file ...] [-comment_symbs=symb ...] [-out=fname]
+                         [-nofm] [-nopause]
+
+DESCRIPTION
+        lcounter counts the numbers of lines of designated text files.
+        Multiple text files can be designated simultaneously and, therefore,
+        the total numbers of lines of source code consisting of multiple
+        module/package files can be counted as a whole.
+        Lines are counted as:
+        - Comment line
+        - Blank line
+        - Plain line
+
+OPTIONS
+        file ...
+            Text files of interest.
+
+        -comment_symbs=symb ... (short form: -comment, default: #)
+            Comment symbols of the designated text files.
+            Multiple symbols are separated by the comma (,).
+
+        -out=fname (short form: -o, default: lcounter_result.txt)
+            The file to which the counted numbers of lines will be written.
+
+        -nofm
+            The front matter will not be displayed at the beginning of the program.
+
+        -nopause
+            The shell will not be paused at the end of the program.
+
+EXAMPLES
+        perl lcounter.pl lcounter.pl ./lib/My/Toolset.pm ./lib/My/Aux.pm
+        perl lcounter.pl baker.pl
+        perl lcounter.pl ms.tex -comment=%
+        perl lcounter.pl depl.bat -comment=rem
+        perl lcounter.pl mapdl.mac -comment=! -o=mac_num_lines.txt
+        perl lcounter.pl accv.gp -comment=#,%
+
+REQUIREMENTS
+        Perl 5
+
+SEE ALSO
+    lcounter on GitHub <https://github.com/jangcom/lcounter>
+
+AUTHOR
+    Jaewoong Jang <jan9@korea.ac.kr>
+
+COPYRIGHT
+    Copyright (c) 2018-2019 Jaewoong Jang
+
+LICENSE
+    This software is available under the MIT license; the license
+    information is found in 'LICENSE'.
+

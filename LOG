@@ -1,0 +1,7 @@
+v1.01 (2019-04-06)
+> Source code reorganized
+> Comment symbols can be specified via the command-line option.
+> The output file can be specified via the command-line option.
+
+v1.00 (2018-09-05)
+> First version
