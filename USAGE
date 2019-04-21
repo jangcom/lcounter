@@ -2,11 +2,12 @@ NAME
     lcounter - Count the numbers of lines of text files
 
 SYNOPSIS
-        perl lcounter.pl [file ...] [-comment_symbs=symb ...] [-out=fname]
+        perl lcounter.pl [file ...] [-comment_symbs=symb ...]
+                         [-report_path=path] [-report=file]
                          [-nofm] [-nopause]
 
 DESCRIPTION
-        lcounter counts the numbers of lines of designated text files.
+        lcounter counts the numbers of lines of the designated text files.
         Multiple text files can be designated simultaneously and, therefore,
         the total numbers of lines of source code consisting of multiple
         module/package files can be counted as a whole.
@@ -17,14 +18,17 @@ DESCRIPTION
 
 OPTIONS
         file ...
-            Text files of interest.
+            Text files whose lines will be counted.
 
         -comment_symbs=symb ... (short form: -comment, default: #)
             Comment symbols of the designated text files.
             Multiple symbols are separated by the comma (,).
 
-        -out=fname (short form: -o, default: lcounter_result.txt)
-            The file to which the counted numbers of lines will be written.
+        -report_path=path (short form: -path, default: current working directory)
+            The path in which the report file will be stored.
+
+        -report=file (short form: -rpt, default: lcounter_result.txt)
+            The report file to which the counted numbers of lines will be written.
 
         -nofm
             The front matter will not be displayed at the beginning of the program.
@@ -34,14 +38,14 @@ OPTIONS
 
 EXAMPLES
         perl lcounter.pl lcounter.pl ./lib/My/Toolset.pm ./lib/My/Aux.pm
-        perl lcounter.pl baker.pl
         perl lcounter.pl ms.tex -comment=%
         perl lcounter.pl depl.bat -comment=rem
-        perl lcounter.pl mapdl.mac -comment=! -o=mac_num_lines.txt
+        perl lcounter.pl mapdl.mac -comment=! -rpt=mac_num_lines.txt
         perl lcounter.pl accv.gp -comment=#,%
+        perl lcounter.pl USAGE -path=./lines_counted
 
 REQUIREMENTS
-        Perl 5
+    Perl 5
 
 SEE ALSO
     lcounter on GitHub <https://github.com/jangcom/lcounter>

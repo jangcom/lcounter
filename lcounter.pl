@@ -3,26 +3,25 @@ use strict;
 use warnings;
 use autodie;
 use utf8;
-use feature qw(say);
-use File::Basename qw(basename);
 use Carp qw(croak);
+use File::Basename qw(basename);
 use DateTime;
-use constant SCALAR => ref \$0;
-use constant ARRAY  => ref [];
-use constant HASH   => ref {};
+use feature qw(say);
+use constant ARRAY => ref [];
+use constant HASH  => ref {};
 
 
-our $VERSION = '1.01';
-our $LAST    = '2019-04-06';
+our $VERSION = '1.02';
+our $LAST    = '2019-04-21';
 our $FIRST   = '2018-09-05';
 
 
 #----------------------------------My::Toolset----------------------------------
 sub show_front_matter {
     # """Display the front matter."""
-    my $sub_name = join('::', (caller(0))[0, 3]);
     
     my $prog_info_href = shift;
+    my $sub_name = join('::', (caller(0))[0, 3]);
     croak "The 1st arg of [$sub_name] must be a hash ref!"
         unless ref $prog_info_href eq HASH;
     
@@ -36,7 +35,7 @@ sub show_front_matter {
         $is_no_newline,
         $is_copy,
     );
-    my $lead_symb    = '';
+    my $lead_symb = '';
     foreach (@_) {
         $is_prog                = 1  if /prog/i;
         $is_auth                = 1  if /auth/i;
@@ -137,11 +136,10 @@ sub show_front_matter {
 
 sub validate_argv {
     # """Validate @ARGV against %cmd_opts."""
-    my $sub_name = join('::', (caller(0))[0, 3]);
     
     my $argv_aref     = shift;
     my $cmd_opts_href = shift;
-    
+    my $sub_name = join('::', (caller(0))[0, 3]);
     croak "The 1st arg of [$sub_name] must be an array ref!"
         unless ref $argv_aref eq ARRAY;
     croak "The 2nd arg of [$sub_name] must be a hash ref!"
@@ -295,10 +293,9 @@ sub construct_timestamps {
 
 sub rm_duplicates {
     # """Remove duplicate items from an array."""
-    my $sub_name = join('::', (caller(0))[0, 3]);
     
     my $aref = shift;
-    
+    my $sub_name = join('::', (caller(0))[0, 3]);
     croak "The 1st arg of [$sub_name] must be an array ref!"
         unless ref $aref eq ARRAY;
     
@@ -333,10 +330,16 @@ sub parse_argv {
             @{$run_opts_href->{comment_symbs}} = split /$field_sep/;
         }
         
-        # Output file
-        if (/$cmd_opts{out}/) {
-            s/$cmd_opts{out}//i;
-            $run_opts_href->{out} = $_;
+        # Report file path
+        if (/$cmd_opts{report_path}/) {
+            s/$cmd_opts{report_path}//i;
+            $run_opts_href->{report_path} = $_;
+        }
+        
+        # Report file
+        if (/$cmd_opts{report}/) {
+            s/$cmd_opts{report}//i;
+            $run_opts_href->{report} = $_;
         }
         
         # The front matter won't be displayed at the beginning of the program.
@@ -371,18 +374,25 @@ sub count_num_of_lines {
         plain   => 0,
     );
     
-    open my $out_fh, '>:encoding(UTF-8)', $run_opts_href->{out};
+    mkdir $run_opts_href->{report_path} if not -e $run_opts_href->{report_path};
+    my $rpt = sprintf(
+        "%s%s%s",
+        $run_opts_href->{report_path},
+        ($run_opts_href->{report_path} =~ /[\\\/]$/ ? '' : '/'),
+        $run_opts_href->{report},
+    );
+    open my $rpt_fh, '>:encoding(UTF-8)', $rpt;
     my %tee_fhs = (
-        out => $out_fh,
+        rpt => $rpt_fh,
         scr => *STDOUT,
     );
     
-    # Output file front matter
+    # Report file front matter
     my @fm = show_front_matter($prog_info_href, 'prog', 'auth', 'copy');
     my %datetimes = construct_timestamps('-');
-    print $out_fh $_ for @fm;
-    print $out_fh "Counted at [$datetimes{ymdhms}]\n";
-    printf $out_fh (
+    print $rpt_fh $_ for @fm;
+    print $rpt_fh "Counted at [$datetimes{ymdhms}]\n";
+    printf $rpt_fh (
         "Comment symbol%s: [%s]\n\n",
         ($run_opts_href->{comment_symbs}[1] ? 's' : ''),
         join(" ", @{$run_opts_href->{comment_symbs}}),
@@ -430,7 +440,7 @@ sub count_num_of_lines {
     
     # Print the total numbers of lines.
     foreach my $fh (sort values %tee_fhs) {
-        print $fh "Total number of lines\n";
+        print $fh "Total numbers of lines\n";
         printf $fh (
             "%-24s %s\n",
             "Number of $_ lines:",       # arg 1
@@ -438,22 +448,22 @@ sub count_num_of_lines {
         ) for qw(comment blank plain);
     }
     
-    close $out_fh;
+    close $rpt_fh;
     
     # Notification
-    printf("\n[%s] generated.\n", $run_opts_href->{out});
+    printf("\n[%s] generated.\n", $rpt);
     
     return;
 }
 
 
 sub lcounter {
-    # ""lcounter main routine"
+    # """lcounter main routine"""
     
     if (@ARGV) {
         my %prog_info = (
             titl       => basename($0, '.pl'),
-            expl       => "Count the numbers of lines of text files",
+            expl       => 'Count the numbers of lines of text files',
             vers       => $VERSION,
             date_last  => $LAST,
             date_first => $FIRST,
@@ -466,14 +476,16 @@ sub lcounter {
         );
         my %cmd_opts = ( # Command-line opts
             comment_symbs => qr/-?-comment(?:_symbs)?\s*=\s*/i,
-            out           => qr/-?-o(?:ut)?\s*=\s*/i,
-            nofm          => qr/-?-nofm/i,
-            nopause       => qr/-?-nopause/i,
+            report_path   => qr/-?-(?:re?po?r?t_)?path\s*=\s*/i,
+            report        => qr/-?-(?:re?po?r?t|o(?:ut)?)\s*=\s*/i, # -o: legacy
+            nofm          => qr/-?-nofm\b/i,
+            nopause       => qr/-?-nopause\b/i,
         );
         my %run_opts = ( # Program run opts
             files         => [],
             comment_symbs => ['#'],
-            out           => "$prog_info{titl}_result.txt",
+            report_path   => '.',
+            report        => "$prog_info{titl}_result.txt",
             is_nofm       => 0,
             is_nopause    => 0,
         );
@@ -491,7 +503,8 @@ sub lcounter {
         
         # Notification - end
         show_elapsed_real_time();
-        pause_shell() unless $run_opts{is_nopause};
+        pause_shell()
+            unless $run_opts{is_nopause};
     }
     
     system("perldoc \"$0\"") if not @ARGV;
@@ -509,12 +522,13 @@ lcounter - Count the numbers of lines of text files
 
 =head1 SYNOPSIS
 
-    perl lcounter.pl [file ...] [-comment_symbs=symb ...] [-out=fname]
+    perl lcounter.pl [file ...] [-comment_symbs=symb ...]
+                     [-report_path=path] [-report=file]
                      [-nofm] [-nopause]
 
 =head1 DESCRIPTION
 
-    lcounter counts the numbers of lines of designated text files.
+    lcounter counts the numbers of lines of the designated text files.
     Multiple text files can be designated simultaneously and, therefore,
     the total numbers of lines of source code consisting of multiple
     module/package files can be counted as a whole.
@@ -526,14 +540,17 @@ lcounter - Count the numbers of lines of text files
 =head1 OPTIONS
 
     file ...
-        Text files of interest.
+        Text files whose lines will be counted.
 
     -comment_symbs=symb ... (short form: -comment, default: #)
         Comment symbols of the designated text files.
         Multiple symbols are separated by the comma (,).
 
-    -out=fname (short form: -o, default: lcounter_result.txt)
-        The file to which the counted numbers of lines will be written.
+    -report_path=path (short form: -path, default: current working directory)
+        The path in which the report file will be stored.
+
+    -report=file (short form: -rpt, default: lcounter_result.txt)
+        The report file to which the counted numbers of lines will be written.
 
     -nofm
         The front matter will not be displayed at the beginning of the program.
@@ -544,15 +561,15 @@ lcounter - Count the numbers of lines of text files
 =head1 EXAMPLES
 
     perl lcounter.pl lcounter.pl ./lib/My/Toolset.pm ./lib/My/Aux.pm
-    perl lcounter.pl baker.pl
     perl lcounter.pl ms.tex -comment=%
     perl lcounter.pl depl.bat -comment=rem
-    perl lcounter.pl mapdl.mac -comment=! -o=mac_num_lines.txt
+    perl lcounter.pl mapdl.mac -comment=! -rpt=mac_num_lines.txt
     perl lcounter.pl accv.gp -comment=#,%
+    perl lcounter.pl USAGE -path=./lines_counted
 
 =head1 REQUIREMENTS
 
-    Perl 5
+Perl 5
 
 =head1 SEE ALSO
 
