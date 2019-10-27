@@ -1,0 +1,15 @@
+# github archive
+github/
+
+# lcounter records
+bak_lcounter.pl/
+lcounter_baker.bat
+
+# MSWin link files
+*.lnk
+
+# POD-related
+lcounter_usage.bat
+lcounter.html
+pod2htmd.tmp
+lcounter_pod2html.bat

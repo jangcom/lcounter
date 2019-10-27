@@ -1,0 +1,21 @@
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+lcounter - Count the numbers of lines of text files
+lcounter v1.03 (2019-10-27)
+Perl v5.26.2
+
+Jaewoong Jang
+jangj@korea.ac.kr
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Counted at [2019-10-27 11:37:33]
+Comment symbol: [#]
+
+File [USAGE]
+Number of comment lines: 0
+Number of blank lines:   15
+Number of plain lines:   47
+
+Total numbers of lines
+Number of comment lines: 0
+Number of blank lines:   15
+Number of plain lines:   47
