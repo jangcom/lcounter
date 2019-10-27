@@ -11,20 +11,20 @@ use constant ARRAY => ref [];
 use constant HASH  => ref {};
 
 
-our $VERSION = '1.02';
-our $LAST    = '2019-04-21';
+our $VERSION = '1.03';
+our $LAST    = '2019-10-27';
 our $FIRST   = '2018-09-05';
 
 
 #----------------------------------My::Toolset----------------------------------
 sub show_front_matter {
     # """Display the front matter."""
-    
+
     my $prog_info_href = shift;
     my $sub_name = join('::', (caller(0))[0, 3]);
     croak "The 1st arg of [$sub_name] must be a hash ref!"
         unless ref $prog_info_href eq HASH;
-    
+
     # Subroutine optional arguments
     my(
         $is_prog,
@@ -48,7 +48,7 @@ sub show_front_matter {
         $lead_symb              = $_ if /^[^a-zA-Z0-9]$/;
     }
     my $newline = $is_no_newline ? "" : "\n";
-    
+
     #
     # Fill in the front matter array.
     #
@@ -59,12 +59,12 @@ sub show_front_matter {
         '+' => $lead_symb.('+' x $border_len).$newline,
         '*' => $lead_symb.('*' x $border_len).$newline,
     );
-    
+
     # Top rule
     if ($is_prog or $is_auth) {
         $fm[$k++] = $borders{'+'};
     }
-    
+
     # Program info, except the usage
     if ($is_prog) {
         $fm[$k++] = sprintf(
@@ -75,14 +75,21 @@ sub show_front_matter {
             $newline,
         );
         $fm[$k++] = sprintf(
-            "%sVersion %s (%s)%s",
+            "%s%s v%s (%s)%s",
             ($lead_symb ? $lead_symb.' ' : $lead_symb),
+            $prog_info_href->{titl},
             $prog_info_href->{vers},
             $prog_info_href->{date_last},
             $newline,
         );
+        $fm[$k++] = sprintf(
+            "%sPerl %s%s",
+            ($lead_symb ? $lead_symb.' ' : $lead_symb),
+            $^V,
+            $newline,
+        );
     }
-    
+
     # Timestamp
     if ($is_timestamp) {
         my %datetimes = construct_timestamps('-');
@@ -93,7 +100,7 @@ sub show_front_matter {
             $newline,
         );
     }
-    
+
     # Author info
     if ($is_auth) {
         $fm[$k++] = $lead_symb.$newline if $is_prog;
@@ -102,25 +109,30 @@ sub show_front_matter {
             ($lead_symb ? $lead_symb.' ' : $lead_symb),
             $prog_info_href->{auth}{$_},
             $newline,
-        ) for qw(name posi affi mail);
+        ) for (
+            'name',
+#            'posi',
+#            'affi',
+            'mail',
+        );
     }
-    
+
     # Bottom rule
     if ($is_prog or $is_auth) {
         $fm[$k++] = $borders{'+'};
     }
-    
+
     # Program usage: Leading symbols are not used.
     if ($is_usage) {
         $fm[$k++] = $newline if $is_prog or $is_auth;
         $fm[$k++] = $prog_info_href->{usage};
     }
-    
+
     # Feed a blank line at the end of the front matter.
     if (not $is_no_trailing_blkline) {
         $fm[$k++] = $newline;
     }
-    
+
     #
     # Print the front matter.
     #
@@ -136,7 +148,7 @@ sub show_front_matter {
 
 sub validate_argv {
     # """Validate @ARGV against %cmd_opts."""
-    
+
     my $argv_aref     = shift;
     my $cmd_opts_href = shift;
     my $sub_name = join('::', (caller(0))[0, 3]);
@@ -144,12 +156,12 @@ sub validate_argv {
         unless ref $argv_aref eq ARRAY;
     croak "The 2nd arg of [$sub_name] must be a hash ref!"
         unless ref $cmd_opts_href eq HASH;
-    
+
     # For yn prompts
     my $the_prog = (caller(0))[1];
     my $yn;
     my $yn_msg = "    | Want to see the usage of $the_prog? [y/n]> ";
-    
+
     #
     # Terminate the program if the number of required arguments passed
     # is not sufficient.
@@ -172,11 +184,11 @@ sub validate_argv {
             }
         }
     }
-    
+
     #
     # Count the number of correctly passed command-line options.
     #
-    
+
     # Non-fnames
     my $num_corr_cmd_opts = 0;
     foreach my $arg (@$argv_aref) {
@@ -187,12 +199,12 @@ sub validate_argv {
             }
         }
     }
-    
+
     # Fname-likes
     my $num_corr_fnames = 0;
     $num_corr_fnames = grep $_ !~ /^-/, @$argv_aref;
     $num_corr_cmd_opts += $num_corr_fnames;
-    
+
     # Warn if "no" correct command-line options have been passed.
     if (not $num_corr_cmd_opts) {
         print "\n    | None of the command-line options was correct.\n";
@@ -203,16 +215,16 @@ sub validate_argv {
             print $yn_msg;
         }
     }
-    
+
     return;
 }
 
 
 sub show_elapsed_real_time {
     # """Show the elapsed real time."""
-    
+
     my @opts = @_ if @_;
-    
+
     # Parse optional arguments.
     my $is_return_copy = 0;
     my @del; # Garbage can
@@ -226,13 +238,13 @@ sub show_elapsed_real_time {
     }
     my %dels = map { $_ => 1 } @del;
     @opts = grep !$dels{$_}, @opts;
-    
+
     # Optional strings printing
     print for @opts;
-    
+
     # Elapsed real time printing
     my $elapsed_real_time = sprintf("Elapsed real time: [%s s]", time - $^T);
-    
+
     # Return values
     if ($is_return_copy) {
         return $elapsed_real_time;
@@ -246,22 +258,22 @@ sub show_elapsed_real_time {
 
 sub pause_shell {
     # """Pause the shell."""
-    
+
     my $notif = $_[0] ? $_[0] : "Press enter to exit...";
-    
+
     print $notif;
     while (<STDIN>) { last; }
-    
+
     return;
 }
 
 
 sub construct_timestamps {
     # """Construct timestamps."""
-    
+
     # Optional setting for the date component separator
     my $date_sep  = '';
-    
+
     # Terminate the program if the argument passed
     # is not allowed to be a delimiter.
     my @delims = ('-', '_');
@@ -271,13 +283,13 @@ sub construct_timestamps {
         croak "The date delimiter must be one of: [".join(', ', @delims)."]"
             unless $is_correct_delim;
     }
-    
+
     # Construct and return a datetime hash.
     my $dt  = DateTime->now(time_zone => 'local');
     my $ymd = $dt->ymd($date_sep);
     my $hms = $dt->hms($date_sep ? ':' : '');
     (my $hm = $hms) =~ s/[0-9]{2}$//;
-    
+
     my %datetimes = (
         none   => '', # Used for timestamp suppressing
         ymd    => $ymd,
@@ -286,23 +298,23 @@ sub construct_timestamps {
         ymdhms => sprintf("%s%s%s", $ymd, ($date_sep ? ' ' : '_'), $hms),
         ymdhm  => sprintf("%s%s%s", $ymd, ($date_sep ? ' ' : '_'), $hm),
     );
-    
+
     return %datetimes;
 }
 
 
 sub rm_duplicates {
     # """Remove duplicate items from an array."""
-    
+
     my $aref = shift;
     my $sub_name = join('::', (caller(0))[0, 3]);
     croak "The 1st arg of [$sub_name] must be an array ref!"
         unless ref $aref eq ARRAY;
-    
+
     my(%seen, @uniqued);
     @uniqued = grep !$seen{$_}++, @$aref;
     @$aref = @uniqued;
-    
+
     return;
 }
 #-------------------------------------------------------------------------------
@@ -310,43 +322,43 @@ sub rm_duplicates {
 
 sub parse_argv {
     # """@ARGV parser"""
-    
+
     my(
         $argv_aref,
         $cmd_opts_href,
         $run_opts_href,
     ) = @_;
     my %cmd_opts = %$cmd_opts_href; # For regexes
-    
+
     # Parser: Overwrite default run options if requested by the user.
     my $field_sep = ',';
     foreach (@$argv_aref) {
         # Files
         push @{$run_opts_href->{files}}, $_ if -e;
-        
+
         # Comment symbols
         if (/$cmd_opts{comment_symbs}/) {
             s/$cmd_opts{comment_symbs}//i;
             @{$run_opts_href->{comment_symbs}} = split /$field_sep/;
         }
-        
+
         # Report file path
         if (/$cmd_opts{report_path}/) {
             s/$cmd_opts{report_path}//i;
             $run_opts_href->{report_path} = $_;
         }
-        
+
         # Report file
         if (/$cmd_opts{report}/) {
             s/$cmd_opts{report}//i;
             $run_opts_href->{report} = $_;
         }
-        
+
         # The front matter won't be displayed at the beginning of the program.
         if (/$cmd_opts{nofm}/) {
             $run_opts_href->{is_nofm} = 1;
         }
-        
+
         # The shell won't be paused at the end of the program.
         if (/$cmd_opts{nopause}/) {
             $run_opts_href->{is_nopause} = 1;
@@ -354,26 +366,26 @@ sub parse_argv {
     }
     rm_duplicates($run_opts_href->{files});
     rm_duplicates($run_opts_href->{comment_symbs});
-    
+
     return;
 }
 
 
 sub count_num_of_lines {
     # """Count the numbers of lines of designated text files."""
-    
+
     my(
         $prog_info_href,
         $run_opts_href,
     ) = @_;
-    
+
     my %files; # Numbers of lines, file by file
     my %tot_nums_of_lines = (
         comment => 0,
         blank   => 0,
         plain   => 0,
     );
-    
+
     mkdir $run_opts_href->{report_path} if not -e $run_opts_href->{report_path};
     my $rpt = sprintf(
         "%s%s%s",
@@ -386,7 +398,7 @@ sub count_num_of_lines {
         rpt => $rpt_fh,
         scr => *STDOUT,
     );
-    
+
     # Report file front matter
     my @fm = show_front_matter($prog_info_href, 'prog', 'auth', 'copy');
     my %datetimes = construct_timestamps('-');
@@ -397,7 +409,7 @@ sub count_num_of_lines {
         ($run_opts_href->{comment_symbs}[1] ? 's' : ''),
         join(" ", @{$run_opts_href->{comment_symbs}}),
     );
-    
+
     # Count the numbers of lines, file by file.
     foreach my $file (@{$run_opts_href->{files}}) {
         open my $fh, '<', $file;
@@ -416,7 +428,7 @@ sub count_num_of_lines {
             $files{$file}{plain}++;
         }
     }
-    
+
     foreach my $file (sort keys %files) {
         # Print the numbers of lines, file by file.
         foreach my $fh (sort values %tee_fhs) {
@@ -428,7 +440,7 @@ sub count_num_of_lines {
             ) for qw(comment blank plain);
             print $fh "\n";
         }
-        
+
         # Count the total numbers of lines.
         $tot_nums_of_lines{comment} += $files{$file}{comment}
             if $files{$file}{comment};
@@ -437,7 +449,7 @@ sub count_num_of_lines {
         $tot_nums_of_lines{plain} += $files{$file}{plain}
             if $files{$file}{plain};
     }
-    
+
     # Print the total numbers of lines.
     foreach my $fh (sort values %tee_fhs) {
         print $fh "Total numbers of lines\n";
@@ -447,19 +459,19 @@ sub count_num_of_lines {
             $tot_nums_of_lines{$_} // 0, # arg 2
         ) for qw(comment blank plain);
     }
-    
+
     close $rpt_fh;
-    
+
     # Notification
     printf("\n[%s] generated.\n", $rpt);
-    
+
     return;
 }
 
 
 sub lcounter {
     # """lcounter main routine"""
-    
+
     if (@ARGV) {
         my %prog_info = (
             titl       => basename($0, '.pl'),
@@ -469,9 +481,9 @@ sub lcounter {
             date_first => $FIRST,
             auth       => {
                 name => 'Jaewoong Jang',
-                posi => 'PhD student',
-                affi => 'University of Tokyo',
-                mail => 'jan9@korea.ac.kr',
+#                posi => '',
+#                affi => '',
+                mail => 'jangj@korea.ac.kr',
             },
         );
         my %cmd_opts = ( # Command-line opts
@@ -489,26 +501,26 @@ sub lcounter {
             is_nofm       => 0,
             is_nopause    => 0,
         );
-        
+
         # ARGV validation and parsing
         validate_argv(\@ARGV, \%cmd_opts);
         parse_argv(\@ARGV, \%cmd_opts, \%run_opts);
-        
+
         # Notification - beginning
         show_front_matter(\%prog_info, 'prog', 'auth')
             unless $run_opts{is_nofm};
-        
+
         # Main
         count_num_of_lines(\%prog_info, \%run_opts);
-        
+
         # Notification - end
         show_elapsed_real_time();
         pause_shell()
             unless $run_opts{is_nopause};
     }
-    
+
     system("perldoc \"$0\"") if not @ARGV;
-    
+
     return;
 }
 
@@ -577,7 +589,7 @@ L<lcounter on GitHub|https://github.com/jangcom/lcounter>
 
 =head1 AUTHOR
 
-Jaewoong Jang <jan9@korea.ac.kr>
+Jaewoong Jang <jangj@korea.ac.kr>
 
 =head1 COPYRIGHT
 
