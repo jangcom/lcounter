@@ -7,7 +7,7 @@ Jaewoong Jang
 jangj@korea.ac.kr
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-Counted at [2019-10-27 11:44:23]
+Counted at [2019-10-27 11:44:24]
 Comment symbol: [#]
 
 File [USAGE]
@@ -15,7 +15,12 @@ Number of comment lines: 0
 Number of blank lines:   15
 Number of plain lines:   47
 
+File [lcounter.pl]
+Number of comment lines: 72
+Number of blank lines:   109
+Number of plain lines:   422
+
 Total numbers of lines
-Number of comment lines: 0
-Number of blank lines:   15
-Number of plain lines:   47
+Number of comment lines: 72
+Number of blank lines:   124
+Number of plain lines:   469

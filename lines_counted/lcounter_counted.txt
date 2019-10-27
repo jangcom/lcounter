@@ -7,7 +7,7 @@ Jaewoong Jang
 jangj@korea.ac.kr
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-Counted at [2019-10-27 11:37:35]
+Counted at [2019-10-27 11:44:22]
 Comment symbol: [#]
 
 File [lcounter.pl]
